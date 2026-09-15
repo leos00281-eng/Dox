@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vulnsec Legion</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #000;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        #matrix-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                rgba(18, 16, 16, 0) 50%, 
+                rgba(0, 0, 0, 0.25) 50%
+            );
+            background-size: 100% 4px;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .vignette {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            box-shadow: inset 0 0 100px rgba(0, 255, 65, 0.2);
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        .container {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .cyber-frame {
+            position: relative;
+            padding: 10px;
+            background: rgba(0, 20, 0, 0.8);
+            border: 2px solid #00ff41;
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.4), inset 0 0 15px rgba(0, 255, 65, 0.2);
+            animation: glitch-border 4s infinite alternate;
+            max-width: 90vw;
+            max-height: 55vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .cyber-frame::before {
+            content: '';
+            position: absolute;
+            top: -6px;
+            left: -6px;
+            width: 15px;
+            height: 15px;
+            border-top: 3px solid #00ff41;
+            border-left: 3px solid #00ff41;
+        }
+
+        .cyber-frame::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            right: -6px;
+            width: 15px;
+            height: 15px;
+            border-bottom: 3px solid #00ff41;
+            border-right: 3px solid #00ff41;
+        }
+
+        .cyber-frame img {
+            display: block;
+            max-width: 100%;
+            max-height: 50vh;
+            object-fit: contain;
+            filter: drop-shadow(0 0 8px rgba(0, 255, 65, 0.6));
+        }
+
+        .description {
+            margin-top: 25px;
+            color: #00ff41;
+            font-size: 1.8rem;
+            font-weight: bold;
+            text-align: center;
+            text-shadow: 0 0 10px #00ff41, 0 0 20px #00ff41, 0 0 30px #00ff41;
+            letter-spacing: 2px;
+            animation: text-pulse 2s infinite alternate;
+            text-transform: uppercase;
+        }
+
+        .developer {
+            margin-top: 10px;
+            color: #fff;
+            font-size: 1.1rem;
+            text-align: center;
+            text-shadow: 0 0 8px #00ff41;
+            letter-spacing: 1px;
+        }
+
+        @keyframes text-pulse {
+            0% {
+                opacity: 0.8;
+                text-shadow: 0 0 5px #00ff41, 0 0 10px #00ff41;
+            }
+            100% {
+                opacity: 1;
+                text-shadow: 0 0 15px #00ff41, 0 0 25px #00ff41, 0 0 35px #00ff41;
+            }
+        }
+
+        @keyframes glitch-border {
+            0% { border-color: #00ff41; box-shadow: 0 0 20px rgba(0, 255, 65, 0.4); }
+            50% { border-color: #008f11; box-shadow: 0 0 10px rgba(0, 143, 17, 0.4); }
+            100% { border-color: #00ff41; box-shadow: 0 0 25px rgba(0, 255, 65, 0.7); }
+        }
+
+        @media (max-width: 768px) {
+            .description {
+                font-size: 1.2rem;
+            }
+            .developer {
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="matrix-canvas"></canvas>
+    <div class="scanlines"></div>
+    <div class="vignette"></div>
+
+    <div class="container">
+        <div class="cyber-frame">
+            <img src="https://i.imgur.com/dx5yyYE.jpeg" alt="" onerror="this.src='https://placehold.co/400x300/000000/00ff41?text=TARGET+LOADED';">
+        </div>
+        
+        <div class="description">You Got DoX Lol</div>
+        <div class="developer">Developer Vulnsec Legion</div>
+    </div>
+
+    <script>
+        const el = document.getElementById('matrix-canvas');
+        const cx = el.getContext('2d');
+
+        function fixSize() {
+            el.width = window.innerWidth;
+            el.height = window.innerHeight;
+        }
+
+        window.addEventListener('resize', fixSize);
+        fixSize();
+
+        const glyphs = 'ｦｱｳｴｵｶｷｹｺｻｼｽｾｿﾀﾂﾃﾅﾆﾇﾈﾊﾋﾎﾏﾐﾑﾒﾓﾔﾕﾗﾘﾜ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ@#$%^&*()_+-=[]{}|;:,.<>?';
+        const sz = 16;
+        let cols = Math.floor(el.width / sz);
+        let pos = [];
+
+        for (let j = 0; j < cols; j++) {
+            pos[j] = 1;
+        }
+
+        function runFx() {
+            cx.fillStyle = 'rgba(0, 0, 0, 0.08)';
+            cx.fillRect(0, 0, el.width, el.height);
+
+            cx.fillStyle = '#00ff41';
+            cx.font = sz + 'px monospace';
+
+            for (let j = 0; j < pos.length; j++) {
+                const charVal = glyphs.charAt(Math.floor(Math.random() * glyphs.length));
+                cx.fillText(charVal, j * sz, pos[j] * sz);
+
+                if (pos[j] * sz > el.height && Math.random() > 0.975) {
+                    pos[j] = 0;
+                }
+                pos[j]++;
+            }
+        }
+
+        setInterval(runFx, 33);
+    </script>
+</body>
+</html>
